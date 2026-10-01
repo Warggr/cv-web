@@ -1,0 +1,149 @@
+{
+  "$schema": "https://raw.githubusercontent.com/jsonresume/resume-schema/v1.0.0/schema.json",
+  "basics": {
+    "name": "John Doe",
+    "label": "Software Engineer",
+    "image": "",
+    "email": "john.doe@example.com",
+    "phone": "+1 555 010 2020",
+    "url": "https://example.com/johndoe",
+    "summary": "Software engineer with experience in full-stack development. Interested in building reliable software, solving unnecessarily difficult technical problems, and turning coffee into reproducible results.",
+    "location": {
+      "address": "123 Example Street",
+      "postalCode": "10001",
+      "city": "New York",
+      "countryCode": "US",
+      "region": "New York"
+    },
+    "profiles": [
+      {
+        "network": "GitHub",
+        "username": "johndoe",
+        "url": "https://github.com/example"
+      },
+      {
+        "network": "LinkedIn",
+        "username": "john-doe",
+        "url": "https://linkedin.com/in/example"
+      }
+    ],
+    "birth": {
+      "date": "15.03.1998",
+      "place": "Example City (USA)"
+    }
+  },
+  "education": [
+    {
+      "institution": "Example University",
+      "url": "https://example.com/university",
+      "area": "Computer Science",
+      "studyType": "M.Sc.",
+      "startDate": "2022-09",
+      "endDate": "2024-06",
+      "special_courses": [
+        "Thesis: <i>Fast Algorithms for Very Important Problems</i>",
+        "Project: <i>Distributed Example System</i> (Python, C++)"
+      ],
+      "courses": ["Algorithms & Data Structures", "Machine Learning"]
+    }
+  ],
+  "work": [
+    {
+      "name": "Acme Corporation",
+      "position": "Software Engineer",
+      "startDate": "2023-06",
+      "endDate": "2023-09",
+      "summary": "Worked on performance and reliability improvements for an internal data-processing platform.",
+      "highlights": [
+        "Optimized Python and C++ data-processing routines",
+        "Added automated tests and performance benchmarks",
+        "Made shareholders happy"
+      ]
+    },
+    {
+      "name": "Example Labs",
+      "position": "Research Assistant",
+      "startDate": "2022-02",
+      "endDate": "2023-05",
+      "summary": "Developed things."
+    }
+  ],
+  "volunteer": [
+    {
+      "organization": "Open Source Example Foundation",
+      "position": "Contributor",
+      "startDate": "2021-01",
+      "endDate": "2024-06",
+      "summary": "Contributed code and documentation to open-source software projects.",
+      "highlights": [
+        "Implemented small features and bug fixes",
+        "Reviewed documentation and examples",
+        "Participated in distributed open-source development"
+      ],
+      "url": "https://example.com/open-source"
+    }
+  ],
+  "awards": [
+    {
+      "title": "Hackathon Finalist",
+      "date": "2023",
+      "awarder": "Example Hackathon",
+      "summary": "Won a price for a novel Web3.0 agentic blockchain AI project."
+    }
+  ],
+  "projects": [
+    {
+      "name": "Home Automation Dashboard",
+      "description": "Web dashboard for monitoring and controlling an unnecessarily elaborate collection of household devices.",
+      "highlights": ["Python", "TypeScript", "REST API"],
+      "url": "https://github.com/example/home-dashboard"
+    }
+  ],
+  "skills": [
+    {
+      "name": "Programming Languages",
+      "keywords": ["Python", "C++", "C", "JavaScript", "TypeScript", "Bash"]
+    },
+    {
+      "name": "Machine Learning",
+      "keywords": ["PyTorch", "scikit-learn", "NumPy"]
+    },
+    {
+      "name": "Scientific Computing",
+      "keywords": ["NumPy", "SciPy", "C++", "OpenMP", "CUDA"]
+    },
+    {
+      "name": "Platforms & Tools",
+      "keywords": ["Linux", "Git", "Docker", "PostgreSQL", "GitHub Actions"]
+    }
+  ],
+  "languages": [
+    {
+      "language": "English",
+      "fluency": "Native"
+    },
+    {
+      "language": "Klingon",
+      "fluency": "Professional"
+    }
+  ],
+  "interests": [
+    {
+      "name": "Technology",
+      "keywords": ["Open source", "Mechanical keyboards"]
+    },
+    {
+      "name": "Sports",
+      "keywords": ["Running", "Cycling"]
+    },
+    {
+      "name": "Music",
+      "keywords": ["Piano"]
+    }
+  ],
+  "meta": {
+    "lang": "en",
+    "version": "v1.0.0",
+    "canonical": "https://github.com/jsonresume/resume-schema/blob/v1.0.0/schema.json"
+  }
+}

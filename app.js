@@ -1,9 +1,7 @@
 import { renderTheme, themeList } from "./src/themes/index.js";
 
 const files = {
-  en: "resume-main.json",
-  de: "resume-main-DE.json",
-  fr: "resume-main-FR.json",
+  example: "mock-resume-john-doe.json",
 };
 
 const app = document.querySelector("#app");
