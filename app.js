@@ -1,7 +1,8 @@
 import { renderTheme, themeList } from "./src/themes/index.js";
 
 const files = {
-  example: "mock-resume-john-doe.json",
+  example: new URL("./data/mock-resume-john-doe.json?url", import.meta.url)
+    .href,
 };
 
 const app = document.querySelector("#app");
@@ -13,8 +14,8 @@ const fileUpload = document.querySelector("#file-upload");
 const themeSelect = document.querySelector("#theme-select");
 
 const urlParams = new URLSearchParams(window.location.search);
-let currentLang = urlParams.get("lang") || "en";
-if (!files[currentLang]) currentLang = "en";
+let currentLang = urlParams.get("cv") || "example";
+if (!files[currentLang]) currentLang = "example";
 
 let currentTheme = urlParams.get("theme") || "warggr";
 if (themeSelect) {
@@ -26,12 +27,12 @@ function setStatus(text, type = "normal") {
   editorStatus.className = "editor-status " + (type || "");
 }
 
-function updateUrl(lang, theme) {
+function updateUrl(preset, theme) {
   const url = new URL(window.location);
-  if (lang) {
-    url.searchParams.set("lang", lang);
+  if (preset) {
+    url.searchParams.set("preset", preset);
   } else {
-    url.searchParams.delete("lang");
+    url.searchParams.delete("preset");
   }
   if (theme) {
     url.searchParams.set("theme", theme);
@@ -41,18 +42,18 @@ function updateUrl(lang, theme) {
   window.history.replaceState({}, "", url);
 }
 
-function updateButtons(lang) {
+function updateButtons(preset) {
   document.querySelectorAll("[data-cv]").forEach((button) => {
-    button.setAttribute("aria-pressed", String(button.dataset.cv === lang));
+    button.setAttribute("aria-pressed", String(button.dataset.cv === preset));
   });
 }
 
-async function renderFromData(data, lang) {
+async function renderFromData(data, preset) {
   try {
     setStatus("Compiling theme…");
     const activeTheme = themeSelect ? themeSelect.value : currentTheme;
     const html = await renderTheme(activeTheme, data, {
-      lang: lang || currentLang,
+      preset: preset || currentLang,
     });
 
     const parser = new DOMParser();
@@ -109,26 +110,27 @@ async function compileEditorContent() {
     return;
   }
 
-  const lang = data?.meta?.lang || currentLang;
-  await renderFromData(data, lang);
+  const preset = data?.meta?.preset || currentLang;
+  await renderFromData(data, preset);
 }
 
-async function loadPreset(lang) {
-  currentLang = lang;
-  document.documentElement.lang = lang;
-  updateButtons(lang);
-  updateUrl(lang, currentTheme);
+async function loadPreset(preset) {
+  currentLang = preset;
+  document.documentElement.preset = preset;
+  updateButtons(preset);
+  updateUrl(preset, currentTheme);
 
   try {
     setStatus("Loading preset…");
-    const filename = files[lang];
-    const res = await fetch(`data/${filename}`);
+    const filename = files[preset];
+    console.warn(filename);
+    const res = await fetch(filename);
     if (!res.ok) {
-      throw new Error(`Failed to load data/${filename}: ${res.statusText}`);
+      throw new Error(`Failed to load ${filename}: ${res.statusText}`);
     }
     const data = await res.json();
     editor.value = JSON.stringify(data, null, 2);
-    await renderFromData(data, lang);
+    await renderFromData(data, preset);
   } catch (err) {
     console.error("Preset load error:", err);
     setStatus("Failed to load preset", "error");
@@ -139,9 +141,9 @@ async function loadPreset(lang) {
 // Preset button handlers
 document.querySelectorAll("[data-cv]").forEach((button) => {
   button.addEventListener("click", () => {
-    const lang = button.dataset.cv;
-    if (lang) {
-      loadPreset(lang);
+    const preset = button.dataset.cv;
+    if (preset) {
+      loadPreset(preset);
     }
   });
 });
