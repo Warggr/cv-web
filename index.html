@@ -3,8 +3,11 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="Pierre Ballif — curriculum vitae" />
-    <title>Curriculum vitae</title>
+    <meta
+      name="description"
+      content="Side-by-side JSON Resume Editor & Live Preview"
+    />
+    <title>JSON Resume — Live Editor</title>
     <link rel="stylesheet" href="styles.css" />
     <link
       rel="stylesheet"
@@ -13,20 +16,76 @@
   </head>
   <body>
     <header class="site-header">
-      <a class="brand" href="./">PB<span> / CV</span></a>
-      <nav class="actions" aria-label="CV actions">
-        <div class="language-picker" role="group" aria-label="Language">
+      <div class="header-left">
+        <a class="brand" href="./">PB<span> / CV Editor</span></a>
+        <div class="language-picker" role="group" aria-label="Preset resumes">
+          <span class="toolbar-label">Preset:</span>
           <button data-cv="en" aria-pressed="true">EN</button>
           <button data-cv="de" aria-pressed="false">DE</button>
           <button data-cv="fr" aria-pressed="false">FR</button>
         </div>
-        <button class="print-button" type="button" onclick="window.print()">
-          Print / save PDF
+      </div>
+
+      <div class="header-right">
+        <!-- Load URL dialog/input -->
+        <button id="btn-load-url" title="Load JSON from URL">Load URL</button>
+        <!-- Upload file button -->
+        <label class="btn-file-upload" title="Upload local JSON file">
+          Upload JSON
+          <input
+            type="file"
+            id="file-upload"
+            accept=".json,application/json"
+            hidden
+          />
+        </label>
+        <!-- Compile / Render button -->
+        <button
+          id="btn-compile"
+          class="primary-button"
+          title="Recompile preview (Ctrl+Enter / Cmd+Enter)"
+        >
+          <i class="fa fa-refresh"></i> Recompile
         </button>
-      </nav>
+        <button
+          class="print-button"
+          type="button"
+          onclick="window.print()"
+          title="Print or save as PDF"
+        >
+          <i class="fa fa-print"></i> Print / PDF
+        </button>
+      </div>
     </header>
-    <main id="app" aria-live="polite"><p class="loading">Loading CV…</p></main>
-    <noscript>This CV needs JavaScript enabled to display.</noscript>
+
+    <div class="workspace">
+      <!-- Left side: Editor Panel -->
+      <section class="editor-pane" aria-label="JSON Source Editor">
+        <div class="pane-header">
+          <span class="pane-title"><i class="fa fa-code"></i> resume.json</span>
+          <div class="editor-status" id="editor-status">Ready</div>
+        </div>
+        <textarea
+          id="json-editor"
+          spellcheck="false"
+          placeholder="Paste or edit your JSON resume here..."
+        ></textarea>
+      </section>
+
+      <!-- Right side: Preview Panel -->
+      <section class="preview-pane" aria-label="Rendered Preview">
+        <div class="pane-header">
+          <span class="pane-title"><i class="fa fa-eye"></i> Preview</span>
+        </div>
+        <div class="preview-scroll">
+          <main id="app" aria-live="polite">
+            <p class="loading">Loading CV…</p>
+          </main>
+        </div>
+      </section>
+    </div>
+
+    <noscript>This CV editor needs JavaScript enabled to display.</noscript>
     <script type="module" src="app.js"></script>
   </body>
 </html>

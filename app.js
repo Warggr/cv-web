@@ -7,14 +7,28 @@ const files = {
 };
 
 const app = document.querySelector("#app");
+const editor = document.querySelector("#json-editor");
+const editorStatus = document.querySelector("#editor-status");
+const btnCompile = document.querySelector("#btn-compile");
+const btnLoadUrl = document.querySelector("#btn-load-url");
+const fileUpload = document.querySelector("#file-upload");
 
 const urlParams = new URLSearchParams(window.location.search);
 let currentLang = urlParams.get("lang") || "en";
 if (!files[currentLang]) currentLang = "en";
 
+function setStatus(text, type = "normal") {
+  editorStatus.textContent = text;
+  editorStatus.className = "editor-status " + (type || "");
+}
+
 function updateUrl(lang) {
   const url = new URL(window.location);
-  url.searchParams.set("lang", lang);
+  if (lang) {
+    url.searchParams.set("lang", lang);
+  } else {
+    url.searchParams.delete("lang");
+  }
   window.history.replaceState({}, "", url);
 }
 
@@ -24,27 +38,10 @@ function updateButtons(lang) {
   });
 }
 
-async function renderResume(lang) {
-  currentLang = lang;
-  document.documentElement.lang = lang;
-  updateButtons(lang);
-  updateUrl(lang);
-
+function renderFromData(data, lang) {
   try {
-    app.innerHTML = '<p class="loading">Loading CV…</p>';
-    const filename = files[lang];
-    const res = await fetch(`data/${filename}`);
-    if (!res.ok) {
-      throw new Error(`Failed to load data/${filename}: ${res.statusText}`);
-    }
-    const data = await res.json();
+    const html = renderWarggr(data, { lang: lang || currentLang });
 
-    // Render using Handlebars theme
-    const html = renderWarggr(data, { lang });
-
-    // Extract body content or display in container
-    // Because template.handlebars outputs a full <!DOCTYPE html> document,
-    // we can parse it and inject its head stylesheets + body content safely into #app
     const parser = new DOMParser();
     const doc = parser.parseFromString(html, "text/html");
 
@@ -75,21 +72,136 @@ async function renderResume(lang) {
 
     // Replace app content with body of rendered theme
     app.innerHTML = doc.body.innerHTML;
+    setStatus("Compiled successfully", "success");
   } catch (err) {
-    console.error("Error rendering CV:", err);
-    app.innerHTML = `<p class="error">The CV could not be loaded: ${err.message}. Please try again.</p>`;
+    console.error("Render error:", err);
+    setStatus("Render error", "error");
+    app.innerHTML = `<div class="error-banner"><strong>Render Error:</strong> ${err.message}</div>`;
   }
 }
 
-// Attach event listeners to language switcher buttons
+function compileEditorContent() {
+  const text = editor.value.trim();
+  if (!text) {
+    setStatus("Empty document", "error");
+    return;
+  }
+
+  let data;
+  try {
+    data = JSON.parse(text);
+  } catch (err) {
+    setStatus("Invalid JSON", "error");
+    app.innerHTML = `<div class="error-banner"><strong>JSON Syntax Error:</strong> ${err.message}</div>`;
+    return;
+  }
+
+  const lang = data?.meta?.lang || currentLang;
+  renderFromData(data, lang);
+}
+
+async function loadPreset(lang) {
+  currentLang = lang;
+  document.documentElement.lang = lang;
+  updateButtons(lang);
+  updateUrl(lang);
+
+  try {
+    setStatus("Loading preset…");
+    const filename = files[lang];
+    const res = await fetch(`data/${filename}`);
+    if (!res.ok) {
+      throw new Error(`Failed to load data/${filename}: ${res.statusText}`);
+    }
+    const data = await res.json();
+    editor.value = JSON.stringify(data, null, 2);
+    renderFromData(data, lang);
+  } catch (err) {
+    console.error("Preset load error:", err);
+    setStatus("Failed to load preset", "error");
+    app.innerHTML = `<div class="error-banner">Failed to load preset: ${err.message}</div>`;
+  }
+}
+
+// Preset button handlers
 document.querySelectorAll("[data-cv]").forEach((button) => {
   button.addEventListener("click", () => {
     const lang = button.dataset.cv;
-    if (lang && lang !== currentLang) {
-      renderResume(lang);
+    if (lang) {
+      loadPreset(lang);
     }
   });
 });
 
-// Initial render
-renderResume(currentLang);
+// Compile button
+btnCompile.addEventListener("click", compileEditorContent);
+
+// Keyboard shortcut: Ctrl+Enter / Cmd+Enter to recompile
+window.addEventListener("keydown", (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+    e.preventDefault();
+    compileEditorContent();
+  }
+});
+
+// Indent support in textarea (Tab inserts 2 spaces)
+editor.addEventListener("keydown", (e) => {
+  if (e.key === "Tab") {
+    e.preventDefault();
+    const start = editor.selectionStart;
+    const end = editor.selectionEnd;
+    editor.value =
+      editor.value.substring(0, start) + "  " + editor.value.substring(end);
+    editor.selectionStart = editor.selectionEnd = start + 2;
+  }
+});
+
+// File upload handler
+fileUpload.addEventListener("change", (e) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = (event) => {
+    try {
+      const content = event.target.result;
+      const parsed = JSON.parse(content);
+      editor.value = JSON.stringify(parsed, null, 2);
+      compileEditorContent();
+      updateButtons(null);
+      setStatus(`Loaded "${file.name}"`, "success");
+    } catch (err) {
+      setStatus("Upload error: invalid JSON", "error");
+      alert("Selected file is not valid JSON: " + err.message);
+    }
+  };
+  reader.readAsText(file);
+});
+
+// Load from URL handler
+btnLoadUrl.addEventListener("click", async () => {
+  const url = prompt("Enter the public URL of a raw JSON resume:");
+  if (!url) return;
+
+  try {
+    setStatus("Fetching URL…");
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+    const data = await res.json();
+    editor.value = JSON.stringify(data, null, 2);
+    compileEditorContent();
+    updateButtons(null);
+    setStatus("Loaded from URL", "success");
+  } catch (err) {
+    console.error("URL fetch error:", err);
+    setStatus("URL fetch failed", "error");
+    alert(
+      "Could not load JSON from URL: " +
+        err.message +
+        "\n(Note: CORS may block requests to some domains)",
+    );
+  }
+});
+
+// Initial load
+loadPreset(currentLang);
