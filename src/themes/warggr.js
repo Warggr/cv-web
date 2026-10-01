@@ -1,41 +1,80 @@
 import Handlebars from "handlebars";
 
-// Import raw template and stylesheets from template-source
-import templateSource from "../../template-source/template.handlebars?raw";
-import fontsCss from "../../template-source/resources/fonts.css?raw";
-import semanticsCss from "../../template-source/resources/semantics.css?raw";
-import columnsCss from "../../template-source/resources/columns.css?raw";
-import styleCss from "../../template-source/resources/style.css?raw";
-import editorCss from "../../template-source/resources/editor.css?raw";
+const GITHUB_RAW_BASE =
+  "https://raw.githubusercontent.com/Warggr/cv-template/master";
 
-// Import locales
-import enLocale from "../../template-source/locales/en.json";
-import deLocale from "../../template-source/locales/de.json";
-import frLocale from "../../template-source/locales/fr.json";
+const RESOURCE_FILES = [
+  "fonts.css",
+  "semantics.css",
+  "columns.css",
+  "style.css",
+  "editor.css",
+];
 
-const locales = {
-  en: enLocale,
-  de: deLocale,
-  fr: frLocale,
-};
+// In-memory cache for GitHub assets
+let cachedTemplate = null;
+const cachedResources = {};
+const cachedLocales = {};
 
-const stylesheets = {
-  "fonts.css": fontsCss,
-  "semantics.css": semanticsCss,
-  "columns.css": columnsCss,
-  "style.css": styleCss,
-  "editor.css": editorCss,
-};
+export async function fetchWarggrAssets() {
+  const fetches = [];
 
-export function render(resume, options = {}) {
+  // Fetch template.handlebars if not cached
+  if (!cachedTemplate) {
+    fetches.push(
+      fetch(`${GITHUB_RAW_BASE}/template.handlebars`)
+        .then((r) => {
+          if (!r.ok) throw new Error(`HTTP ${r.status} fetching template`);
+          return r.text();
+        })
+        .then((text) => {
+          cachedTemplate = text;
+        }),
+    );
+  }
+
+  // Fetch stylesheets if not cached
+  for (const file of RESOURCE_FILES) {
+    if (!cachedResources[file]) {
+      fetches.push(
+        fetch(`${GITHUB_RAW_BASE}/resources/${file}`)
+          .then((r) => (r.ok ? r.text() : ""))
+          .then((text) => {
+            cachedResources[file] = text;
+          }),
+      );
+    }
+  }
+
+  // Fetch all standard locales
+  for (const lang of ["en", "de", "fr"]) {
+    if (!cachedLocales[lang]) {
+      fetches.push(
+        fetch(`${GITHUB_RAW_BASE}/locales/${lang}.json`)
+          .then((r) => (r.ok ? r.json() : {}))
+          .then((json) => {
+            cachedLocales[lang] = json;
+          })
+          .catch(() => {
+            cachedLocales[lang] = {};
+          }),
+      );
+    }
+  }
+
+  await Promise.all(fetches);
+}
+
+export async function render(resume, options = {}) {
+  await fetchWarggrAssets();
+
   const lang = options.lang || resume?.meta?.lang || "en";
-  const translations = locales[lang] || locales.en;
+  const translations = cachedLocales[lang] || cachedLocales.en || {};
 
-  // Create an isolated Handlebars environment
   const hbs = Handlebars.create();
 
   hbs.registerHelper("css", function (sheetname) {
-    const contents = stylesheets[sheetname] || "";
+    const contents = cachedResources[sheetname] || "";
     return new hbs.SafeString(
       `<style data-sheet="${sheetname}">${contents}</style>`,
     );
@@ -61,12 +100,13 @@ export function render(resume, options = {}) {
     return regionNames ? regionNames.of(code) || code : code;
   });
 
-  const compiled = hbs.compile(templateSource, { noEscape: true });
+  const compiled = hbs.compile(cachedTemplate, { noEscape: true });
   return compiled({ resume });
 }
 
 export default {
-  name: "warggr",
-  label: "Warggr (Handlebars)",
+  id: "warggr",
+  name: "Warggr (GitHub origin)",
+  type: "handlebars",
   render,
 };

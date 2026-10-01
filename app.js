@@ -1,4 +1,4 @@
-import { render as renderWarggr } from "./src/themes/warggr.js";
+import { renderTheme, themeList } from "./src/themes/index.js";
 
 const files = {
   en: "resume-main.json",
@@ -12,22 +12,33 @@ const editorStatus = document.querySelector("#editor-status");
 const btnCompile = document.querySelector("#btn-compile");
 const btnLoadUrl = document.querySelector("#btn-load-url");
 const fileUpload = document.querySelector("#file-upload");
+const themeSelect = document.querySelector("#theme-select");
 
 const urlParams = new URLSearchParams(window.location.search);
 let currentLang = urlParams.get("lang") || "en";
 if (!files[currentLang]) currentLang = "en";
+
+let currentTheme = urlParams.get("theme") || "warggr";
+if (themeSelect) {
+  themeSelect.value = currentTheme;
+}
 
 function setStatus(text, type = "normal") {
   editorStatus.textContent = text;
   editorStatus.className = "editor-status " + (type || "");
 }
 
-function updateUrl(lang) {
+function updateUrl(lang, theme) {
   const url = new URL(window.location);
   if (lang) {
     url.searchParams.set("lang", lang);
   } else {
     url.searchParams.delete("lang");
+  }
+  if (theme) {
+    url.searchParams.set("theme", theme);
+  } else {
+    url.searchParams.delete("theme");
   }
   window.history.replaceState({}, "", url);
 }
@@ -38,16 +49,20 @@ function updateButtons(lang) {
   });
 }
 
-function renderFromData(data, lang) {
+async function renderFromData(data, lang) {
   try {
-    const html = renderWarggr(data, { lang: lang || currentLang });
+    setStatus("Compiling theme…");
+    const activeTheme = themeSelect ? themeSelect.value : currentTheme;
+    const html = await renderTheme(activeTheme, data, {
+      lang: lang || currentLang,
+    });
 
     const parser = new DOMParser();
     const doc = parser.parseFromString(html, "text/html");
 
     // Remove any previously injected theme styles
     document
-      .querySelectorAll("style[data-theme-sheet]")
+      .querySelectorAll("style[data-theme-sheet], style[data-theme-global]")
       .forEach((el) => el.remove());
 
     // Inject styles from the theme's head into document head
@@ -55,7 +70,7 @@ function renderFromData(data, lang) {
       const cloned = document.createElement("style");
       cloned.setAttribute(
         "data-theme-sheet",
-        styleEl.getAttribute("data-sheet") || "theme",
+        styleEl.getAttribute("data-sheet") || "theme-global",
       );
       cloned.textContent = styleEl.textContent;
       document.head.appendChild(cloned);
@@ -80,7 +95,7 @@ function renderFromData(data, lang) {
   }
 }
 
-function compileEditorContent() {
+async function compileEditorContent() {
   const text = editor.value.trim();
   if (!text) {
     setStatus("Empty document", "error");
@@ -97,14 +112,14 @@ function compileEditorContent() {
   }
 
   const lang = data?.meta?.lang || currentLang;
-  renderFromData(data, lang);
+  await renderFromData(data, lang);
 }
 
 async function loadPreset(lang) {
   currentLang = lang;
   document.documentElement.lang = lang;
   updateButtons(lang);
-  updateUrl(lang);
+  updateUrl(lang, currentTheme);
 
   try {
     setStatus("Loading preset…");
@@ -115,7 +130,7 @@ async function loadPreset(lang) {
     }
     const data = await res.json();
     editor.value = JSON.stringify(data, null, 2);
-    renderFromData(data, lang);
+    await renderFromData(data, lang);
   } catch (err) {
     console.error("Preset load error:", err);
     setStatus("Failed to load preset", "error");
@@ -132,6 +147,15 @@ document.querySelectorAll("[data-cv]").forEach((button) => {
     }
   });
 });
+
+// Theme switcher handler
+if (themeSelect) {
+  themeSelect.addEventListener("change", async () => {
+    currentTheme = themeSelect.value;
+    updateUrl(currentLang, currentTheme);
+    await compileEditorContent();
+  });
+}
 
 // Compile button
 btnCompile.addEventListener("click", compileEditorContent);
@@ -162,12 +186,12 @@ fileUpload.addEventListener("change", (e) => {
   if (!file) return;
 
   const reader = new FileReader();
-  reader.onload = (event) => {
+  reader.onload = async (event) => {
     try {
       const content = event.target.result;
       const parsed = JSON.parse(content);
       editor.value = JSON.stringify(parsed, null, 2);
-      compileEditorContent();
+      await compileEditorContent();
       updateButtons(null);
       setStatus(`Loaded "${file.name}"`, "success");
     } catch (err) {
@@ -189,7 +213,7 @@ btnLoadUrl.addEventListener("click", async () => {
     if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
     const data = await res.json();
     editor.value = JSON.stringify(data, null, 2);
-    compileEditorContent();
+    await compileEditorContent();
     updateButtons(null);
     setStatus("Loaded from URL", "success");
   } catch (err) {
