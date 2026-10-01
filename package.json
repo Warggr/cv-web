@@ -1,0 +1,14 @@
+{
+  "name": "pierre-ballif-cv",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A dependency-light static CV site",
+  "type": "module",
+  "scripts": {
+    "format": "prettier . --write",
+    "format:check": "prettier . --check"
+  },
+  "devDependencies": {
+    "prettier": "^3.9.6"
+  }
+}

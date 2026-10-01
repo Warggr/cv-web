@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Pierre Ballif — curriculum vitae" />
+    <title>Curriculum vitae</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="./">PB<span> / CV</span></a>
+      <nav class="actions" aria-label="CV actions">
+        <div class="language-picker" role="group" aria-label="Language">
+          <button data-cv="en" aria-pressed="true">EN</button>
+          <button data-cv="de" aria-pressed="false">DE</button>
+          <button data-cv="fr" aria-pressed="false">FR</button>
+        </div>
+        <button class="print-button" type="button" onclick="window.print()">
+          Print / save PDF
+        </button>
+      </nav>
+    </header>
+    <main id="app" aria-live="polite"><p class="loading">Loading CV…</p></main>
+    <noscript>This CV needs JavaScript enabled to display.</noscript>
+    <script type="module" src="app.js"></script>
+  </body>
+</html>
