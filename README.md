@@ -1,34 +1,38 @@
 # Static CV web app
 
-A dependency-free, static site that renders the English, German, and French CV JSON files in `data/`.
+Static CV web app that dynamically renders English, German, and French JSON-Resume files in the browser using Handlebars and the custom JSON Resume template theme.
 
-## Preview
+## Development / Live Preview
 
-Install the development tools once, then run the bundled zero-runtime-dependency server:
+Install dependencies once, then start the Vite development server:
 
 ```sh
 npm install
-npm run serve
+npm run dev
 ```
 
-Open `http://localhost:8080`. A local server is needed because browsers do not allow `fetch()` calls from `file://` pages. To choose another port, use `PORT=3000 npm run serve`.
+Open `http://localhost:8080`. Changes to styles or templates will hot-reload automatically.
 
-`npm install` only installs Prettier for development. The site and local server use Node's built-in modules, so there are no runtime dependencies.
+## Build for Production (GitHub Pages)
 
-## Formatting and hooks
-
-The project follows the same Prettier hook configuration as `template/`. Install the hook once (after installing [pre-commit](https://pre-commit.com/)):
+Build the static distribution:
 
 ```sh
-pre-commit install
+npm run build
 ```
 
-Use `npm run format` to format manually or `npm run format:check` in CI.
+This compiles the assets into `dist/`. The output files are self-contained and use relative asset paths (`base: './'`), so `dist/` can be deployed directly to GitHub Pages, Cloudflare Pages, or Netlify.
 
-## Deploy
+To test the production build locally:
 
-Publish the contents of this `cv-web` folder to any static host (GitHub Pages, Netlify, Cloudflare Pages, etc.). There is no build step or server component. The language can be linked directly, for example `/?lang=de`.
+```sh
+npm run preview
+```
 
-## Update CV content
+## Adding / Switching Themes
 
-Replace the matching files under `data/` with refreshed generated JSON files. The app intentionally owns these copies so deployment remains self-contained.
+Themes live in `src/themes/`. The default theme (`warggr`) compiles `template-source/template.handlebars` with Handlebars and registers translation & helper utilities. Additional JSON-Resume Handlebars themes can be placed alongside it.
+
+## Update CV Content
+
+Update the JSON files under `public/data/` (or `data/`). The build copies `public/data/` straight into `dist/data/`.
