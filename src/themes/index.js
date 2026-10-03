@@ -1,11 +1,9 @@
 let themes = {};
 
-let loadedThemeUrls = {};
 export async function loadTheme(name, url) {
   try {
     const { render } = await import(url /* vite-ignore */);
     themes[name] = render;
-    loadedThemeUrls[name] = url;
   } catch (err) {
     console.error(`Could not load theme ${name}: ${err}`);
   }
@@ -33,7 +31,7 @@ export async function renderTheme(themeId, resume, options = {}) {
   const render = themes[themeId] || themes["Desert Modern"];
   console.warn(themes);
   if (render === undefined) {
-    return `<h1>Error: Theme not found</h1><br/>Loaded themes: ${Object.keys(loadedThemeUrls)}`;
+    return `<h1>Error: Theme not found</h1><br/>Loaded themes: ${Object.keys(themes)}`;
   }
   return await render(resume, options);
 }
