@@ -1,4 +1,4 @@
-import { renderTheme, themeList } from "./src/themes/index.js";
+import { renderTheme, loadDefaultThemes } from "./src/themes/index.js";
 
 const files = {
   example: new URL("./data/mock-resume-john-doe.json?url", import.meta.url)
@@ -17,10 +17,19 @@ const urlParams = new URLSearchParams(window.location.search);
 let currentLang = urlParams.get("cv") || "example";
 if (!files[currentLang]) currentLang = "example";
 
-let currentTheme = urlParams.get("theme") || "warggr";
-if (themeSelect) {
-  themeSelect.value = currentTheme;
-}
+loadDefaultThemes().then((themes) => {
+  const children = Object.keys(themes).map((theme) => {
+    let child = document.createElement("option");
+    child.value = theme;
+    child.textContent = theme;
+    console.log(theme);
+    return child;
+  });
+  themeSelect.replaceChildren(...children);
+});
+
+let currentTheme = urlParams.get("theme") || "Desert Modern";
+themeSelect.value = currentTheme;
 
 function setStatus(text, type = "normal") {
   editorStatus.textContent = text;
@@ -51,8 +60,8 @@ function updateButtons(preset) {
 async function renderFromData(data, preset) {
   try {
     setStatus("Compiling theme…");
-    const activeTheme = themeSelect ? themeSelect.value : currentTheme;
-    const html = await renderTheme(activeTheme, data, {
+    const activeThemeName = themeSelect ? themeSelect.value : currentTheme;
+    const html = await renderTheme(activeThemeName, data, {
       preset: preset || currentLang,
     });
 
@@ -123,7 +132,6 @@ async function loadPreset(preset) {
   try {
     setStatus("Loading preset…");
     const filename = files[preset];
-    console.warn(filename);
     const res = await fetch(filename);
     if (!res.ok) {
       throw new Error(`Failed to load ${filename}: ${res.statusText}`);
