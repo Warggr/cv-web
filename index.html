@@ -9,10 +9,6 @@
     />
     <title>JSON Resume — Live Editor</title>
     <link rel="stylesheet" href="styles.css" />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
-    />
   </head>
   <body>
     <header class="site-header">
@@ -80,16 +76,37 @@
       <section class="preview-pane" aria-label="Rendered Preview">
         <div class="pane-header">
           <span class="pane-title"><i class="fa fa-eye"></i> Preview</span>
+          <button id="btn-popout" type="button" title="Open preview in new tab">
+            Open in new tab
+          </button>
         </div>
         <div class="preview-scroll">
-          <main id="app" aria-live="polite">
-            <p class="loading">Loading CV…</p>
-          </main>
+          <div id="app" aria-live="polite">
+            <template shadowrootmode="open">
+              <p class="loading">Loading CV…</p>
+            </template>
+          </div>
         </div>
       </section>
     </div>
 
     <noscript>This CV editor needs JavaScript enabled to display.</noscript>
-    <script type="module" src="app.js"></script>
+    <script type="module" src="./src/previewer.js"></script>
+    <script type="module" src="./src/editor.js"></script>
+    <script>
+      if (window.location.hash == "#detached") {
+        document.querySelector(".editor-pane").remove();
+      } else {
+        //import('./src/editor.js');
+        function popOut() {
+          window.open("#detached");
+          window.location.hash = "#detacher";
+          document.querySelector(".preview-pane").remove();
+        }
+
+        const btnPopOut = document.querySelector("#btn-popout");
+        btnPopOut.addEventListener("click", popOut);
+      }
+    </script>
   </body>
 </html>

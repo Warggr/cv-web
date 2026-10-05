@@ -1,11 +1,11 @@
-import { renderTheme, loadDefaultThemes } from "./src/themes/index.js";
+import { renderTheme, loadDefaultThemes } from "./themes/index.js";
+
+export const channel = new BroadcastChannel("cv_json_content");
 
 const files = {
-  example: new URL("./data/mock-resume-john-doe.json?url", import.meta.url)
-    .href,
+  example: new URL("/data/mock-resume-john-doe.json?url", import.meta.url).href,
 };
 
-const app = document.querySelector("#app");
 const editor = document.querySelector("#json-editor");
 const editorStatus = document.querySelector("#editor-status");
 const btnCompile = document.querySelector("#btn-compile");
@@ -64,42 +64,12 @@ async function renderFromData(data, preset) {
     const html = await renderTheme(activeThemeName, data, {
       preset: preset || currentLang,
     });
-
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(html, "text/html");
-
-    // Remove any previously injected theme styles
-    document
-      .querySelectorAll("style[data-theme-sheet], style[data-theme-global]")
-      .forEach((el) => el.remove());
-
-    // Inject styles from the theme's head into document head
-    doc.querySelectorAll("style").forEach((styleEl) => {
-      const cloned = document.createElement("style");
-      cloned.setAttribute(
-        "data-theme-sheet",
-        styleEl.getAttribute("data-sheet") || "theme-global",
-      );
-      cloned.textContent = styleEl.textContent;
-      document.head.appendChild(cloned);
-    });
-
-    // Make sure font-awesome is present
-    if (!document.querySelector('link[href*="font-awesome"]')) {
-      const fa = document.createElement("link");
-      fa.rel = "stylesheet";
-      fa.href =
-        "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css";
-      document.head.appendChild(fa);
-    }
-
-    // Replace app content with body of rendered theme
-    app.innerHTML = doc.body.innerHTML;
     setStatus("Compiled successfully", "success");
+    return html;
   } catch (err) {
     console.error("Render error:", err);
     setStatus("Render error", "error");
-    app.innerHTML = `<div class="error-banner"><strong>Render Error:</strong> ${err.message}</div>`;
+    return `<div class="error-banner"><strong>Render Error:</strong> ${err.message}</div>`;
   }
 }
 
@@ -120,7 +90,8 @@ async function compileEditorContent() {
   }
 
   const preset = data?.meta?.preset || currentLang;
-  await renderFromData(data, preset);
+  const html = await renderFromData(data, preset);
+  channel.postMessage(html);
 }
 
 async function loadPreset(preset) {
