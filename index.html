@@ -65,7 +65,7 @@
         <button
           class="print-button"
           type="button"
-          onclick="window.print()"
+          onclick="printCv()"
           title="Print or save as PDF"
         >
           <i class="fa fa-print"></i> Print / PDF
@@ -95,13 +95,13 @@
             Open in new tab
           </button>
         </div>
-        <div class="preview-scroll">
-          <div id="app" aria-live="polite">
-            <template shadowrootmode="open">
-              <p class="loading">Loading CV…</p>
-            </template>
-          </div>
-        </div>
+        <iframe
+          id="app"
+          class="preview-scroll"
+          aria-live="polite"
+          src="about:blank"
+        >
+        </iframe>
       </section>
     </div>
 
@@ -121,6 +121,13 @@
 
         const btnPopOut = document.querySelector("#btn-popout");
         btnPopOut.addEventListener("click", popOut);
+      }
+    </script>
+    <script>
+      function printCv() {
+        const iframe = document.querySelector("#app");
+        iframe.contentWindow.focus();
+        iframe.contentWindow.print();
       }
     </script>
   </body>

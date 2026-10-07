@@ -29,6 +29,20 @@ body {
   border-bottom: 1px solid var(--line);
 }
 
+/* Container for the rendered CV */
+#app {
+  max-width: 900px;
+  background: #fff;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+  min-height: 100%;
+}
+
+.preview-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0;
+}
+
 @media (max-width: 900px) {
   .workspace {
     flex-direction: column;
