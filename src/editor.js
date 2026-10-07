@@ -11,6 +11,7 @@ const editorStatus = document.querySelector("#editor-status");
 const btnCompile = document.querySelector("#btn-compile");
 const btnLoadUrl = document.querySelector("#btn-load-url");
 const fileUpload = document.querySelector("#file-upload");
+const imageUpload = document.querySelector("#image-upload");
 const themeSelect = document.querySelector("#theme-select");
 
 const urlParams = new URLSearchParams(window.location.search);
@@ -90,6 +91,12 @@ async function compileEditorContent() {
     setStatus("Invalid JSON", "error");
     app.innerHTML = `<div class="error-banner"><strong>JSON Syntax Error:</strong> ${err.message}</div>`;
     return;
+  }
+  if (
+    localStorage.getItem("profile-image") !== undefined &&
+    data.basics.image == ""
+  ) {
+    data.basics.image = localStorage.getItem("profile-image");
   }
 
   const preset = data?.meta?.preset || currentLang;
@@ -212,6 +219,17 @@ btnLoadUrl.addEventListener("click", async () => {
         "\n(Note: CORS may block requests to some domains)",
     );
   }
+});
+
+imageUpload.addEventListener("change", (e) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.addEventListener("load", () => {
+    localStorage.setItem("profile-image", reader.result);
+    compileEditorContent();
+  });
+  reader.readAsDataURL(file);
 });
 
 // Initial load
