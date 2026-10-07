@@ -16,14 +16,6 @@
   box-sizing: border-box;
 }
 
-html,
-body {
-  height: 100%;
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
-}
-
 body {
   background: var(--wash);
   color: var(--ink);
@@ -154,32 +146,6 @@ button[aria-pressed="true"] {
   background: #f0fdf4;
 }
 
-/* Side-by-side workspace */
-.workspace {
-  display: flex;
-  flex: 1;
-  height: calc(100vh - var(--header-height));
-  overflow: hidden;
-}
-
-.editor-pane {
-  flex: 1;
-  min-width: 320px;
-  display: flex;
-  flex-direction: column;
-  background: var(--editor-bg);
-  border-right: 1px solid #334155;
-}
-
-.preview-pane {
-  flex: 1;
-  min-width: 400px;
-  display: flex;
-  flex-direction: column;
-  background: var(--wash);
-  overflow: hidden;
-}
-
 .pane-header {
   height: 38px;
   padding: 0 14px;
@@ -194,52 +160,11 @@ button[aria-pressed="true"] {
   user-select: none;
 }
 
-.preview-pane .pane-header {
-  background: #f8fafc;
-  color: #64748b;
-  border-bottom: 1px solid var(--line);
-}
-
 .pane-title {
   display: flex;
   align-items: center;
   gap: 8px;
   font-weight: 600;
-}
-
-.editor-status {
-  font-size: 11px;
-  padding: 2px 8px;
-  border-radius: 3px;
-  background: #282834;
-  color: #38bdf8;
-}
-
-.editor-status.error {
-  background: #451a1a;
-  color: #f87171;
-}
-
-.editor-status.success {
-  background: #143526;
-  color: #4ade80;
-}
-
-#json-editor {
-  flex: 1;
-  width: 100%;
-  border: none;
-  outline: none;
-  background: var(--editor-bg);
-  color: var(--editor-text);
-  font-family: "JetBrains Mono", Consolas, "Fira Code", Monaco, monospace;
-  font-size: 13px;
-  line-height: 1.5;
-  padding: 16px;
-  resize: none;
-  tab-size: 2;
-  white-space: pre;
-  overflow: auto;
 }
 
 .preview-scroll {
@@ -271,49 +196,4 @@ button[aria-pressed="true"] {
   color: #991b1b;
   border-radius: 6px;
   font-size: 14px;
-}
-
-@media (max-width: 900px) {
-  .workspace {
-    flex-direction: column;
-    height: auto;
-    overflow: auto;
-  }
-  body,
-  html {
-    overflow: auto;
-  }
-  .editor-pane {
-    height: 45vh;
-  }
-  .preview-pane {
-    height: auto;
-  }
-}
-
-@media print {
-  html,
-  body {
-    height: auto !important;
-    overflow: visible !important;
-    background: transparent !important;
-  }
-  .site-header,
-  .editor-pane,
-  .preview-pane .pane-header {
-    display: none !important;
-  }
-  .workspace,
-  .preview-pane,
-  .preview-scroll {
-    display: block !important;
-    height: auto !important;
-    overflow: visible !important;
-    padding: 0 !important;
-  }
-  #app {
-    max-width: none !important;
-    margin: 0 !important;
-    box-shadow: none !important;
-  }
 }

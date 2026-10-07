@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Side-by-side JSON Resume Editor & Live Preview"
+    />
+    <title>Theme Picker</title>
+    <link rel="stylesheet" href="/src/styles.css" />
+    <style>
+      .theme-preview > img {
+        height: 500px;
+        width: 500px;
+        object-fit: cover;
+        object-position: top;
+      }
+    </style>
+    <script type="importmap">
+      {
+        "imports": {
+          "fs": "/fs-polyfill.js",
+          "node:fs": "/fs-polyfill.js"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="header-left">
+        <a class="brand" href="/">PB<span> / CV Editor</span></a>
+        <div class="preset-picker" role="group" aria-label="Preset resumes">
+          <span class="toolbar-label">Preset:</span>
+          <button data-cv="example" aria-pressed="true">Preset</button>
+        </div>
+      </div>
+    </header>
+    <main id="themes"></main>
+    <script type="module">
+      import { main } from "./themes/load_themes.js";
+      main();
+    </script>
+  </body>
+</html>

@@ -8,7 +8,17 @@
       content="Side-by-side JSON Resume Editor & Live Preview"
     />
     <title>JSON Resume — Live Editor</title>
-    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="src/styles.css" />
+    <link rel="stylesheet" href="src/previewer.css" />
+    <link rel="stylesheet" href="src/editor.css" />
+    <script type="importmap">
+      {
+        "imports": {
+          "fs": "/fs-polyfill.js",
+          "node:fs": "/fs-polyfill.js"
+        }
+      }
+    </script>
   </head>
   <body>
     <header class="site-header">
@@ -91,8 +101,8 @@
     </div>
 
     <noscript>This CV editor needs JavaScript enabled to display.</noscript>
-    <script type="module" src="./src/previewer.js"></script>
-    <script type="module" src="./src/editor.js"></script>
+    <script type="module" src="src/previewer.js"></script>
+    <script type="module" src="src/editor.js"></script>
     <script>
       if (window.location.hash == "#detached") {
         document.querySelector(".editor-pane").remove();

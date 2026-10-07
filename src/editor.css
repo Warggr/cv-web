@@ -1,0 +1,43 @@
+.editor-pane {
+  flex: 1;
+  min-width: 320px;
+  display: flex;
+  flex-direction: column;
+  background: var(--editor-bg);
+  border-right: 1px solid #334155;
+}
+
+.editor-status {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 3px;
+  background: #282834;
+  color: #38bdf8;
+}
+
+.editor-status.error {
+  background: #451a1a;
+  color: #f87171;
+}
+
+.editor-status.success {
+  background: #143526;
+  color: #4ade80;
+}
+
+#json-editor {
+  flex: 1;
+  width: 100%;
+  border: none;
+  outline: none;
+  background: var(--editor-bg);
+  color: var(--editor-text);
+  font-family: "JetBrains Mono", Consolas, "Fira Code", Monaco, monospace;
+  font-size: 13px;
+  line-height: 1.5;
+  padding: 16px;
+  resize: none;
+  tab-size: 2;
+  white-space: pre;
+  overflow: auto;
+}

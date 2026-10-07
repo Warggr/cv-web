@@ -22,9 +22,12 @@ loadDefaultThemes().then((themes) => {
     let child = document.createElement("option");
     child.value = theme;
     child.textContent = theme;
-    console.log(theme);
     return child;
   });
+  let add = document.createElement("option");
+  add.value = "+";
+  add.textContent = "Add themes...";
+  children.push(add);
   themeSelect.replaceChildren(...children);
 });
 
@@ -131,6 +134,11 @@ document.querySelectorAll("[data-cv]").forEach((button) => {
 if (themeSelect) {
   themeSelect.addEventListener("change", async () => {
     currentTheme = themeSelect.value;
+    if (currentTheme == "+") {
+      window.location.replace(
+        new URL("src/theme_select.html", window.location.href),
+      );
+    }
     updateUrl(currentLang, currentTheme);
     await compileEditorContent();
   });
