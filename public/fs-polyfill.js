@@ -1,18 +1,24 @@
 const virtual_filesystem = (globalThis.__jsonresume_virtual_filesystem ??=
   new Map());
 
-export function readFileSync(filename) {
+function translateFilePath(filename) {
   const filePath = filename.split("/");
   console.assert(filePath[0] == "", filePath);
   console.assert(filePath[3] == "es2022", filePath);
   filePath.splice(2, 2);
   filePath.splice(0, 1);
-  const file = virtual_filesystem.get(filePath.join("/"));
-  console.assert(
-    virtual_filesystem.has(filePath.join("/")),
-    filePath.join("/"),
-  );
-  return file;
+  return filePath.join("/");
+}
+
+export function existsSync(filename) {
+  const filepath = translateFilePath(filename);
+  return virtual_filesystem.has(filepath);
+}
+
+export function readFileSync(filename) {
+  const filePath = translateFilePath(filename);
+  console.assert(virtual_filesystem.has(filePath), filePath);
+  return virtual_filesystem.get(filePath);
 }
 
 export function readdirSync(dirname) {
@@ -56,3 +62,9 @@ export function registerFiles(theme_info, files) {
     }
   }
 }
+
+export default {
+  readFileSync,
+  readdirSync,
+  existsSync,
+};
