@@ -9,14 +9,7 @@
     />
     <title>Theme Picker</title>
     <link rel="stylesheet" href="/src/styles.css" />
-    <style>
-      .theme-preview > img {
-        height: 500px;
-        width: 500px;
-        object-fit: cover;
-        object-position: top;
-      }
-    </style>
+    <link rel="stylesheet" href="/src/theme_select.css" />
     <script type="importmap">
       {
         "imports": {
@@ -36,10 +29,57 @@
         </div>
       </div>
     </header>
-    <main id="themes"></main>
+    <main id="themes">
+      <nav>
+        <a href="../">Back to editor</a>
+      </nav>
+      <section id="themes-starred">
+        <h1>Starred themes (<span class="counter">0</span>)</h1>
+        <ul></ul>
+      </section>
+      <section id="themes-loaded">
+        <h1>Loaded (<span class="counter">0</span>)</h1>
+        <ul></ul>
+      </section>
+      <section id="themes-loading">
+        <h1>Loading (<span class="counter">0</span>)</h1>
+        <ul></ul>
+      </section>
+      <section id="themes-failed" hidden>
+        <h1>Failed (<span class="counter">0</span>)</h1>
+        <ul></ul>
+      </section>
+    </main>
     <script type="module">
       import { main } from "./themes/load_themes.js";
       main();
     </script>
+    <template id="theme-tile-template">
+      <li class="theme-tile">
+        <div class="theme-preview">
+          <img
+            src=""
+            alt="Preview of the {{theme}} resume theme"
+            loading="lazy"
+          />
+          <span class="status" role="status"></span>
+        </div>
+        <div class="theme-card-footer">
+          <div class="theme-info">
+            <h3></h3>
+            <p class="theme-description"></p>
+          </div>
+          <label class="theme-select" title="Add theme {{theme}} to the editor">
+            <input
+              type="checkbox"
+              class="theme-checkbox"
+              value=""
+              aria-label="Add theme {{theme}} to the editor"
+            />
+            <span class="star" aria-hidden="true">☆</span>
+          </label>
+        </div>
+      </li>
+    </template>
   </body>
 </html>

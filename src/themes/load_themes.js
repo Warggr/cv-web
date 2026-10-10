@@ -1,16 +1,14 @@
 import html2canvas from "html2canvas";
-import { inflate } from "pako";
-import untar from "js-untar";
-const { registerFiles } = await import(/* @vite-ignore */ "/fs-polyfill.js");
+import {
+  loadTheme,
+  getThemeUrl,
+  getBundledThemes,
+  getStarredThemeDescrs,
+} from "./index.js";
 
 const REGISTRY_URL = "https://registry.npmjs.org/-/v1/search";
-const ESM_BASE = "https://esm.sh/";
-const NPM_BASE = "https://registry.npmjs.org/";
-
-const MAX_THEMES = 100;
+const MAX_THEMES = 500;
 const PAGE_SIZE = 20;
-
-const themeGrid = document.getElementById("themes");
 
 // CORS-restricted, for whatever reason
 /* function getAllThemes() {
@@ -25,23 +23,19 @@ async function getResume() {
   return fetch(RESUME_URL).then((res) => res.json());
 }
 
+const tile_template = document.getElementById("theme-tile-template");
+
 function createTile(theme) {
-  const tile = document.createElement("div");
-  tile.className = "theme-tile";
+  const tile = document.importNode(tile_template.content, true);
 
-  const title = document.createElement("div");
-  title.className = "theme-title";
-  title.textContent = theme.package.name;
+  const title = tile.querySelector(".theme-info > h3");
+  title.textContent = theme.name;
 
-  const status = document.createElement("div");
-  status.className = "theme-status";
+  const status = tile.querySelector("span.status");
   status.textContent = "Loading...";
 
-  const preview = document.createElement("div");
-  preview.className = "theme-preview";
-
-  tile.append(title, status, preview);
-  themeGrid.appendChild(tile);
+  const preview = tile.querySelector("div.theme-preview > img");
+  preview.hidden = true;
 
   return {
     tile,
@@ -128,45 +122,28 @@ async function renderPreview(html) {
   }
 }
 
-async function getThemeUrl(theme) {
-  const name = theme.package.name;
-  const version = theme.package.version;
+const loaded_section = document.getElementById("themes-loaded");
+const loaded_counter = loaded_section.querySelector(".counter");
+const loaded = loaded_section.querySelector("ul");
+const starred_section = document.getElementById("themes-starred");
+const starred_counter = starred_section.querySelector(".counter");
+const starred = starred_section.querySelector("ul");
+const loading_section = document.getElementById("themes-loading");
 
-  // esm.sh will resolve the package and its dependencies.
-  const url = `${ESM_BASE}${name}@${version}?external=node:fs,fs`;
-  const npm_url = `${NPM_BASE}${name}/${version}`;
-  const tarball_url = (await fetch(npm_url).then((res) => res.json())).dist
-    .tarball;
+async function loadThemePreview(theme, resume, is_starred) {
+  const failed_section = document.getElementById("themes-failed");
+  const loading_counter = loading_section.querySelector(".counter");
 
-  return { name, url, tarball_url, version };
-}
+  const loading = loading_section.querySelector("ul");
 
-async function registerFilesForModule(theme) {
-  const files = await fetch(theme.tarball_url)
-    .then((res) => res.arrayBuffer())
-    .then(inflate)
-    .then((arr) => arr.buffer)
-    .then(untar);
-  registerFiles(theme, files);
-}
-
-export async function loadTheme(theme) {
-  console.debug(`Loading ${theme.name} from ${theme.url}`);
-  await registerFilesForModule(theme);
-  const module = await import(/* @vite-ignore */ theme.url);
-
-  if (typeof module.render !== "function") {
-    throw new Error("Theme does not export a render() function");
-  }
-  return module.render;
-}
-
-async function loadThemePreview(theme, resume) {
-  const { status, preview } = createTile(theme);
+  let { tile, status, preview } = createTile(theme);
+  loading.appendChild(tile);
+  // tile is a DocumentFragment, and only becomes a Node through appendChild.
+  tile = loading.lastElementChild;
+  loading_counter.textContent = loading.children.length;
 
   try {
-    const theme_info = await getThemeUrl(theme);
-    const render = await loadTheme(theme_info);
+    const render = await loadTheme(theme);
     const html = await render(resume);
 
     if (typeof html !== "string") {
@@ -178,23 +155,48 @@ async function loadThemePreview(theme, resume) {
     status.textContent = "Rendering preview...";
 
     const canvas = await renderPreview(html);
+    preview.src = canvas.toDataURL("image/png");
+    preview.alt = `Preview of ${theme.name}`;
 
-    const image = document.createElement("img");
-    image.src = canvas.toDataURL("image/png");
-    image.alt = `Preview of ${theme.package.name}`;
-
-    preview.replaceChildren(image);
     status.textContent = "Ready";
-    return theme_info;
+    tile
+      .querySelector(".theme-checkbox")
+      .setAttribute("data-theme-info", JSON.stringify(theme));
   } catch (error) {
     setError(status, error);
+    failed_section.appendChild(tile);
+    loading_counter.textContent = loading.children.length;
     return null;
   }
+  preview.hidden = false;
+  status.hidden = true;
+  if (is_starred) {
+    tile.querySelector(".theme-checkbox").checked = true;
+    starred.appendChild(tile);
+    starred_counter.textContent = loaded.children.length;
+  } else {
+    loaded.appendChild(tile);
+    loaded_counter.textContent = loaded.children.length;
+  }
+
+  loading_counter.textContent = loading.children.length;
+  return theme;
 }
 
 async function* getAllThemes() {
-  let offset = 0;
+  let loaded_themes = new Set();
+  for (const theme of getStarredThemeDescrs()) {
+    if (loaded_themes.has(theme.name)) continue;
+    loaded_themes.add(theme.name);
+    yield [theme, true];
+  }
+  for (const theme of getBundledThemes()) {
+    if (loaded_themes.has(theme.name)) continue;
+    loaded_themes.add(theme.name);
+    yield [theme, false];
+  }
 
+  let offset = 0;
   while (true) {
     const params = new URLSearchParams({
       text: "jsonresume-theme-",
@@ -213,7 +215,10 @@ async function* getAllThemes() {
     const results = await response.json();
 
     for (const result of results.objects) {
-      yield result;
+      let theme = await getThemeUrl(result);
+      if (loaded_themes.has(theme.name)) continue;
+      loaded_themes.add(theme.name);
+      yield [theme, false];
     }
 
     if (results.objects.length === 0) {
@@ -227,18 +232,13 @@ async function* getAllThemes() {
   }
 }
 
-// Used by many themes
-await getThemeUrl({
-  package: { name: "resume-schema", version: "0.0.15" },
-}).then(registerFilesForModule);
-
 export async function main() {
   let resume;
 
   try {
     resume = await getResume();
   } catch (error) {
-    themeGrid.textContent = error.message;
+    loading_section.textContent = error.message;
     return;
   }
 
@@ -246,10 +246,10 @@ export async function main() {
 
   let promises = [];
   try {
-    for await (const theme of getAllThemes()) {
+    for await (const [theme, is_starred] of getAllThemes()) {
       // Start loading immediately. Don't await it here, otherwise one
       // broken/slow theme would hold up all the subsequent tiles.
-      promises.push(loadThemePreview(theme, resume));
+      promises.push(loadThemePreview(theme, resume, is_starred));
 
       count++;
 
@@ -259,12 +259,31 @@ export async function main() {
     }
     let themes = await Promise.all(promises);
     themes = themes.filter((theme) => theme !== null);
-    localStorage.setItem("external-themes", JSON.stringify(themes));
   } catch (error) {
     console.error("Could not load theme list:", error);
 
     const errorElement = document.createElement("div");
     errorElement.textContent = `Could not load themes: ${error.message}`;
-    themeGrid.appendChild(errorElement);
+    loading_section.appendChild(errorElement);
   }
 }
+
+const star_callback = (event) => {
+  const tile = event.target.parentNode.parentNode.parentNode;
+  let themes = JSON.parse(localStorage.getItem("themes") || "[]");
+  if (event.target.checked) {
+    starred.appendChild(tile);
+    themes.push(JSON.parse(event.target.getAttribute("data-theme-info")));
+  } else {
+    loaded.appendChild(tile);
+    themes = themes.filter(
+      (theme) =>
+        JSON.stringify(theme) != event.target.getAttribute("data-theme-info"),
+    );
+  }
+  localStorage.setItem("themes", JSON.stringify(themes));
+  loaded_counter.textContent = loaded.children.length;
+  starred_counter.textContent = starred.children.length;
+};
+loaded.addEventListener("change", star_callback);
+starred.addEventListener("change", star_callback);

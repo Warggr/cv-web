@@ -1,4 +1,4 @@
-import { renderTheme, loadDefaultThemes } from "./themes/index.js";
+import { themes, loadDefaultThemes } from "./themes/index.js";
 
 export const channel = new BroadcastChannel("cv_json_content");
 
@@ -27,7 +27,7 @@ loadDefaultThemes().then((themes) => {
   });
   let add = document.createElement("option");
   add.value = "+";
-  add.textContent = "Add themes...";
+  add.textContent = "Manage themes...";
   children.push(add);
   themeSelect.replaceChildren(...children);
 });
@@ -59,6 +59,14 @@ function updateButtons(preset) {
   document.querySelectorAll("[data-cv]").forEach((button) => {
     button.setAttribute("aria-pressed", String(button.dataset.cv === preset));
   });
+}
+
+export async function renderTheme(themeId, resume, options = {}) {
+  const render = themes[themeId] || themes["Macchiato"];
+  if (render === undefined) {
+    return `<h1>Error: Theme not found</h1><br/>Loaded themes: ${Object.keys(themes)}`;
+  }
+  return await render(resume, options);
 }
 
 async function renderFromData(data, preset) {
